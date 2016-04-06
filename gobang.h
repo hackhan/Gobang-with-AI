@@ -7,7 +7,7 @@
 #define UNIT_SIZE (CELL_SIZE + SHORTBAR_SIZE)
 #define WINDOW_SIZE ((CELL_SIZE + SHORTBAR_SIZE) * \
 					 (CK_SIZE - 1) + CELL_SIZE)
-
+ 
 void draw_board();
 bool set_chess(int x, int y);
 bool select_order();

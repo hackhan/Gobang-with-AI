@@ -8,27 +8,18 @@
 #include <algorithm>
 using namespace std;
 
-/*
- * ÓÃÒ»¸ö¶şÎ¬Êı×é±íÊ¾ÆåÅÌÉÏÃ¿¸öÂä×ÓµãµÄ×´Ì¬£¬
- * 0 ´ú±íÎŞ×Ó£¬1 ´ú±íºÚ×Ó£¬2 ´ú±í°××Ó
- */
-int position[CK_SIZE][CK_SIZE];
-
-/*
- * ¼ÇÂ¼µ±Ç°¸ÃÏÂÄÄÖÖÆå×Ó£¬ÖµÎª true Ê±¸ÃºÚ×ÓÏÂ£¬
- * ·ñÔò¸Ã°××ÓÏÂ
- */
-bool setblack = true;
+int position[CK_SIZE][CK_SIZE];		// ç”¨ä¸€ä¸ªäºŒç»´æ•°ç»„è®°å½•æ£‹ç›˜ä¸Šæ¯ä¸ªè½å­ç‚¹çš„çŠ¶æ€(0æ— å­ï¼Œ1é»‘å­ï¼Œ2ç™½å­)
+bool setblack = true;				// å€¼ä¸º true æ—¶è¯¥é»‘å­ä¸‹ï¼Œå¦åˆ™è¯¥ç™½å­ä¸‹
 
 int main() {
 	initgraph(WINDOW_SIZE, WINDOW_SIZE);
-	setcaption("Îå×ÓÆå");
+	setcaption("äº”å­æ£‹");
 	setbkcolor(EGERGB(218, 165, 105));
 
 	bool flag = select_order();
 	draw_board();
 
-	// ¶ÔŞÄÇ°£¬ÏÈÇå¿ÕÊó±êÏûÏ¢
+	// æ¸…ç©ºé¼ æ ‡æ¶ˆæ¯
 	mouse_msg temp;
 	while (mousemsg()) temp = getmouse();
 
@@ -53,7 +44,7 @@ int main() {
 	} while (!is_gameover(x, y));
 
 	Sleep(10);
-	MessageBox(NULL, setblack ? " °××ÓÊ¤£¡" : " ºÚ×ÓÊ¤£¡", 
+	MessageBox(NULL, setblack ? " ç™½å­èƒœï¼" : " é»‘å­èƒœï¼", 
 			   "Game Over", MB_OK | MB_ICONINFORMATION);
 
 	for (key_msg k = { 0 }; k = getkey(), k.key != key_esc; );
@@ -62,27 +53,27 @@ int main() {
 }
 
 /*
- * Ñ¡Ôñ¶ÔÕ½´ÎĞò(µçÄÔÏÈÏÂ / Íæ¼ÒÏÈÏÂ)
- * Èç¹ûÑ¡ÔñµçÄÔÏÈÏÂÔò·µ»Ø true£¬·ñÔò·µ»Ø false
+ * é€‰æ‹©å¯¹æˆ˜æ¬¡åº(ç”µè„‘å…ˆä¸‹ / ç©å®¶å…ˆä¸‹)
+ * å¦‚æœé€‰æ‹©ç”µè„‘å…ˆä¸‹åˆ™è¿”å› trueï¼Œå¦åˆ™è¿”å› false
  */
 bool select_order() {
 	setcolor(EGERGB(0, 0, 0));
-	setfont(-19, 0, "ËÎÌå");
-	outtextxy(6 * UNIT_SIZE - 4, 6 * UNIT_SIZE, "¡ñ µçÄÔÏÈÏÂ");
-	outtextxy(6 * UNIT_SIZE - 4, 7 * UNIT_SIZE, "¡ğ Íæ¼ÒÏÈÏÂ");
-	setfont(-16, 0, "ËÎÌå");
-	outtextxy(9 * UNIT_SIZE, 14 * UNIT_SIZE, "¡ü ¡ı Ñ¡Ôñ  Enter È·¶¨");
-	setfont(-19, 0, "ËÎÌå");
+	setfont(-19, 0, "å®‹ä½“");
+	outtextxy(6 * UNIT_SIZE - 4, 6 * UNIT_SIZE, "â— ç”µè„‘å…ˆä¸‹");
+	outtextxy(6 * UNIT_SIZE - 4, 7 * UNIT_SIZE, "â—‹ ç©å®¶å…ˆä¸‹");
+	setfont(-16, 0, "å®‹ä½“");
+	outtextxy(9 * UNIT_SIZE, 14 * UNIT_SIZE, "â†‘ â†“ é€‰æ‹©  Enter ç¡®å®š");
+	setfont(-19, 0, "å®‹ä½“");
 
 	bool flag = true;
 	for (key_msg k = { 0 }; k = getkey(), k.key != key_esc; ) {
 		switch (k.key) {
-			case 38: outtextxy(6 * UNIT_SIZE - 4, 6 * UNIT_SIZE, "¡ñ");
-					 outtextxy(6 * UNIT_SIZE - 4, 7 * UNIT_SIZE, "¡ğ");
+			case 38: outtextxy(6 * UNIT_SIZE - 4, 6 * UNIT_SIZE, "â—");
+					 outtextxy(6 * UNIT_SIZE - 4, 7 * UNIT_SIZE, "â—‹");
 					 flag = true;
 					 break;
-			case 40: outtextxy(6 * UNIT_SIZE - 4, 6 * UNIT_SIZE, "¡ğ");
-					 outtextxy(6 * UNIT_SIZE - 4, 7 * UNIT_SIZE, "¡ñ");
+			case 40: outtextxy(6 * UNIT_SIZE - 4, 6 * UNIT_SIZE, "â—‹");
+					 outtextxy(6 * UNIT_SIZE - 4, 7 * UNIT_SIZE, "â—");
 					 flag = false;
 					 break;
 			case 13: cleardevice();
@@ -94,13 +85,13 @@ bool select_order() {
 
 
 /*
- * »æÖÆÆåÅÌ
+ * ç»˜åˆ¶æ£‹ç›˜
  */
 void draw_board() {
 	setcolor(EGERGB(0, 0, 0));
 	setfillcolor(EGERGB(0, 0, 0));
 	
-	// »æÖÆÍø¸ñÏß
+	// ç»˜åˆ¶ç½‘æ ¼çº¿
 	for (int i = 0; i < CK_SIZE; i++) {
 		bar(CELL_SIZE / 2 - 1, 
 			CELL_SIZE / 2 - 1 + UNIT_SIZE * i,
@@ -115,9 +106,9 @@ void draw_board() {
 	}
 
 	
-	// »æÖÆÌìÔª¼°ÖÜÎ§ËÄ¸öĞÇÎ»µÄºÚµã
+	// ç»˜åˆ¶å¤©å…ƒåŠå‘¨å›´å››ä¸ªæ˜Ÿä½çš„é»‘ç‚¹
 	PIMAGE img = newimage();
-	getimage(img, "res/¡£.ico");
+	getimage(img, "res/ã€‚.ico");
 	putimage(CK_SIZE / 2 * UNIT_SIZE, CK_SIZE / 2 * UNIT_SIZE, img);
 	putimage(3 * UNIT_SIZE, 3 * UNIT_SIZE, img);
 	putimage((CK_SIZE - 4) * UNIT_SIZE, 3 * UNIT_SIZE, img);
@@ -148,8 +139,8 @@ bool is_gameover(int x, int y) {
 	cout << "\n";
 #endif	
 	/*
-	 * ½« position Êı×éµÄµÚ y ĞĞ¿½±´µ½ ivec ÖĞ£¬È»ºóËÑË÷¸ÃĞĞÊÇ·ñ³öÏÖ
-	 * ÁËÁ¬ĞøÏàÍ¬µÄÎå¸öÔªËØ
+	 * å°† position æ•°ç»„çš„ç¬¬ y è¡Œæ‹·è´åˆ° ivec ä¸­ï¼Œç„¶åæœç´¢è¯¥è¡Œæ˜¯å¦å‡ºç°
+	 * äº†è¿ç»­ç›¸åŒçš„äº”ä¸ªå…ƒç´ 
 	 */
 	copy(position[y], position[y] + CK_SIZE, back_inserter(ivec));
 	auto it = search(ivec.begin(), ivec.end(), five.begin(), five.end());
@@ -157,8 +148,8 @@ bool is_gameover(int x, int y) {
 	ivec.clear();
 
 	/*
-	 * ½« position Êı×éµÚ x ÁĞ¿½±´µ½ ivec ÖĞ£¬È»ºóËÑË÷¸ÃÁĞÊÇ·ñ³öÏÖ
-	 * ÁËÁ¬ĞøÏàÍ¬µÄÎå¸öÔªËØ
+	 * å°† position æ•°ç»„ç¬¬ x åˆ—æ‹·è´åˆ° ivec ä¸­ï¼Œç„¶åæœç´¢è¯¥åˆ—æ˜¯å¦å‡ºç°
+	 * äº†è¿ç»­ç›¸åŒçš„äº”ä¸ªå…ƒç´ 
 	 */
 	for (int i = 0; i < CK_SIZE; i++) {
 		ivec.push_back(position[i][x]);
@@ -168,8 +159,8 @@ bool is_gameover(int x, int y) {
 	ivec.clear();
 
 	/*
-	 * ½« position[y][x] ËùÔÚµÄ "\" ·½ÏòĞ±Ïß¿½±´µ½ ivec ÖĞ£¬ËÑË÷
-	 * ÊÇ·ñ³öÏÖÁ¬ĞøÏàÍ¬µÄÎå¸öÔªËØ
+	 * å°† position[y][x] æ‰€åœ¨çš„ "\" æ–¹å‘æ–œçº¿æ‹·è´åˆ° ivec ä¸­ï¼Œæœç´¢
+	 * æ˜¯å¦å‡ºç°è¿ç»­ç›¸åŒçš„äº”ä¸ªå…ƒç´ 
 	 */
 	int _x, _y;
 	x < y ? (_x = x - x, _y = y - x) : (_x = x - y, _y = y - y);
@@ -181,8 +172,8 @@ bool is_gameover(int x, int y) {
 	ivec.clear();
 
 	/*
-	 * ½« position[y][x] ËùÔÚµÄ "/" ·½ÏòĞ±Ïß¿½±´µ½ ivec ÖĞ£¬ËÑË÷
-	 * ÊÇ·ñ³öÏÖÁ¬ĞøÏàÍ¬µÄÎå¸öÔªËØ
+	 * å°† position[y][x] æ‰€åœ¨çš„ "/" æ–¹å‘æ–œçº¿æ‹·è´åˆ° ivec ä¸­ï¼Œæœç´¢
+	 * æ˜¯å¦å‡ºç°è¿ç»­ç›¸åŒçš„äº”ä¸ªå…ƒç´ 
 	 */
 	_x = x;
 	_y = y;
@@ -193,12 +184,14 @@ bool is_gameover(int x, int y) {
 	for (; _x < CK_SIZE && _y >= 0; _x++, _y--)	{
 		ivec.push_back(position[_y][_x]);
 	}
+
 #ifdef DEBUG
 	cout << "ivec: ";
 	for (auto it : ivec) 
 		cout << it << " ";
 	cout << "\n";
 #endif
+	
 	it = search(ivec.begin(), ivec.end(), five.begin(), five.end());
 	if (it != ivec.end()) return true;
 

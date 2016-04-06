@@ -37,7 +37,7 @@ extern bool setblack;
 void ai(int &x, int &y) {
 	int max = 0, count = 0;
 	int enemy = setblack ? 2 : 1;	// 标记对方是哪种颜色的棋子
-	vector<int *> candidateVec;		// position 数组中候选元素的地址容器
+	vector<int *> candidateVec;		// 将 position 数组中候选的点保存于此
 
 	int *pFirst = NULL, *pLast = NULL;
 
@@ -81,13 +81,30 @@ void ai(int &x, int &y) {
 	/*
 	 * 竖直方向扫描
 	 */
-	pRow pRowFirst, pRowLast;
+	/*pRow pRowFirst, pRowLast;
 	for (pRowFirst = (pRow)&position[0][x]; 
 		 pRowFirst != (pRow)&position[0][x] + CK_SIZE; ) {
 		if (*pRowFirst == 0) {
-			
+			for (pRowLast = pRowFirst + 1; pRowLast != &position[0][x] + CK_SIZE; ) {
+				if (*pRowLast == enemy) pRowLast++;
+				else break;
+			}
+
+			if ((count == pRowLast - pRowFirst) >= max && count < 5) {
+				if (count > max)
+					candidateVec.clear();
+				if (pRowFirst > &position[0][x] && *(pRowFirst - 1) == 0)
+					candidateVec.push_back(pRowFirst - 1);
+				if (pRowLast <= &position[CK_SIZE - 1][x] && *pRowLast == 0)
+					candidateVec.push_back(pRowLast);
+				max = count;
+			}
+
+			pRowFirst = pRowLast;
+			continue;
 		}
-	}
+		pRowFirst++;
+	}*/
 
 	/*
 	 * 四个方向上都遍历过后，从 candidateVec 中选择最优点
@@ -107,7 +124,7 @@ void ai(int &x, int &y) {
 	}
 
 #ifdef DEBUG
-	printf("x: %d\n", x);
+	printf("不好x: %d\n", x);
 	printf("y: %d\n", y);
 #endif
 	
