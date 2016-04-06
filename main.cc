@@ -52,9 +52,11 @@ int main() {
 			flag = !flag;
 	} while (!is_gameover(x, y));
 
-	Sleep(100);
-	MessageBox(NULL, setblack ? "°××ÓÊ¤£¡" : "ºÚ×ÓÊ¤£¡",
+	Sleep(10);
+	MessageBox(NULL, setblack ? " °××ÓÊ¤£¡" : " ºÚ×ÓÊ¤£¡", 
 			   "Game Over", MB_OK | MB_ICONINFORMATION);
+
+	for (key_msg k = { 0 }; k = getkey(), k.key != key_esc; );
 	closegraph();
 	return 0;
 }
@@ -131,7 +133,7 @@ bool set_chess(int x, int y) {
 	PIMAGE img = newimage();
 	getimage(img, setblack ? "res/black.ico" : "res/white.ico");
 	putimage(x * UNIT_SIZE, y * UNIT_SIZE, img);
-	setblack ? (position[y][x] = 1) : (position[y][x] = 2);
+	position[y][x] = setblack ? 1 : 2;
 	setblack = !setblack;
 	return true;
 }

@@ -3,16 +3,14 @@
 CXX=g++
 SRCS=main.cc ai.cc
 OBJS=$(SRCS:.cc=.o)
-CFLAGS=-c -Wall -O2 -std=c++11
+CFLAGS=-c -Wall -std=c++11 -DDEBUG -g -O0
 LINK=-lgraphics -lgdi32 -limm32 -lmsimg32 \
 	 -lole32 -loleaut32 -lwinmm -luuid
 	 
 gobang: $(OBJS)
-	$(CXX) -o $@ $^ $(LINK) -mwindows
-	@echo *************** OK ***************
+	$(CXX) -o $@ $^ $(LINK) 
+	@echo *************** Compile completed! ***************
 
-#$(OBJS): $(SRCS) gobang.h
-#	$(CXX) -o $@ -c -Wall -O2 -std=c++11 $^
 main.o: main.cc gobang.h
 	$(CXX) -o $@ $(CFLAGS) main.cc 
 ai.o: ai.cc gobang.h
