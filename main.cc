@@ -119,25 +119,20 @@ void draw_board() {
 }
 
 bool set_chess(int x, int y) {
-	if (position[y][x] != 0) return false;
+	if (position[y][x] != EMPTY) return false;
 
 	PIMAGE img = newimage();
 	getimage(img, setblack ? "res/black.ico" : "res/white.ico");
 	putimage(x * UNIT_SIZE, y * UNIT_SIZE, img);
-	position[y][x] = setblack ? 1 : 2;
+	position[y][x] = setblack ? BLACK : WHITE;
 	setblack = !setblack;
 	return true;
 }
 
 bool is_gameover(int x, int y) {
-	vector<int> five(5, setblack ? 2 : 1);
+	vector<int> five(5, setblack ? WHITE : BLACK);
 	vector<int> ivec;
 
-#ifdef DEBUG
-	for (auto it : five) 
-		cout << it << " ";
-	cout << "\n";
-#endif	
 	/*
 	 * 将 position 数组的第 y 行拷贝到 ivec 中，然后搜索该行是否出现
 	 * 了连续相同的五个元素
@@ -185,13 +180,6 @@ bool is_gameover(int x, int y) {
 		ivec.push_back(position[_y][_x]);
 	}
 
-#ifdef DEBUG
-	cout << "ivec: ";
-	for (auto it : ivec) 
-		cout << it << " ";
-	cout << "\n";
-#endif
-	
 	it = search(ivec.begin(), ivec.end(), five.begin(), five.end());
 	if (it != ivec.end()) return true;
 

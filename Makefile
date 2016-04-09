@@ -1,4 +1,3 @@
-# 最终生成可执行文件 gobang.exe
 # 编译环境 MinGW 4.9.2，编译器选择 g++
 # 采用 C++ 11 标准
 
@@ -6,7 +5,7 @@ CXX=g++
 SRCS=main.cc ai.cc
 OBJS=$(SRCS:.cc=.o)
 
-CFLAGS=-c -Wall -std=c++11 -DDEBUG -g -O0
+CFLAGS=-c -Wall -std=c++11 -O2 
 
 LINK=-lgraphics -lgdi32 -limm32 -lmsimg32 \
 	 -lole32 -loleaut32 -lwinmm -luuid
@@ -17,8 +16,8 @@ CHARSET=-finput-charset=UTF-8 \
 		-fexec-charset=GBK
 
 gobang: $(OBJS)
-	$(CXX) -o $@ $^ $(LINK) 
-	@echo *************** Compile completed! ***************
+	$(CXX) -o $@ $^ $(LINK) -mwindows
+	@echo *************** Compile successfully! ***************
 
 %.o: %.cc gobang.h
 	$(CXX) -o $@ $(CFLAGS) $(CHARSET) $<
