@@ -28,4 +28,6 @@ void scan_line_and_row(pTemplate pFirst,
 					   int &enemy,
 					   vector<int *> &candidateVec);
 
+const char *match(const char *buf, int buf_size);
+
 #endif
