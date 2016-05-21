@@ -22,7 +22,7 @@ $(EXEC): $(OBJS)
 
 main.o: gobang.h
 
-ai.o: gobang.h chesslib.h
+ai.o: gobang.h chess_lib.h
 
 %.o: %.cc
 	$(CXX) -o $@ $(CXXFLAGS) $(CHARSET) $<
