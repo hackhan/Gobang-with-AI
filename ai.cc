@@ -21,17 +21,22 @@ typedef struct gametree_node {
 /*
  * 将一个棋盘复制到另一个棋盘中， 并且产生新的棋子
  */
-void make_chessboard(int (*prev_board)[CK_SIZE], int (*cur_board)[CK_SIZE],
-                     int layer_number, int &x, int &y) {
+void make_chessboard(int (*prev_board)[CK_SIZE], 
+                     int (*cur_board)[CK_SIZE],
+                     int layer_number, 
+                     bool setblack_fake,
+                     int &x, int &y) {
     for (int i = 0; i < CK_SIZE; i++) 
         copy(prev_board[i], prev_board[i] + CK_SIZE, cur_board[i]);
 
     for (int i = 0; i < CK_SIZE; i++) {
         for (int j = 0; j < CK_SIZE; j++)
-            if (cur_board[i][j] == '0') {
+            if (cur_board[i][j] == 0) {
                 x = j;
                 y = i;
-                cur_board[i][j] = layer_number % 2 ? 2 : 1;
+                cur_board[i][j] = setblack_fake ? BLACK : WHITE;
+                i = CK_SIZE;
+                break;
             }
     }
 }
@@ -47,11 +52,14 @@ void create_gametree(gametree_node *root, int layer_number) {
     root->x = root->y = -1;
     root->nscore = -1;
     root->layer_number = layer_number;
-    root->prev = layer_number == 0 ? nullptr : root;
+    root->prev = layer_number == 0 ? nullptr : container_of(&root, gametree_node, next);
     root->next = nullptr;
 
+    static bool setblack_fake = !setblack;
+    setblack_fake = !setblack_fake;
     make_chessboard(root->prev ? root->prev->chessboard : position, 
-                    root->chessboard, layer_number, root->x, root->y);
+                    root->chessboard, layer_number, setblack_fake,
+                    root->x, root->y);
 
     create_gametree(root->next, ++layer_number);
 }
@@ -112,7 +120,7 @@ int evaluation_func(int chessboard[][]) {
 
     char tmp[CK_SIZE];
     memset(tmp, 0, sizeof(tmp));
-        // 纵向扫描棋盘
+    // 纵向扫描棋盘
     for (int i = 0; i < CK_SIZE; i++) {
         for (int j = 0; j < CK_SIZE; j++) {
             tmp[j] = chessboard[j][i] - '0';
