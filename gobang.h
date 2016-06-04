@@ -11,7 +11,7 @@
 #define BLACK 1
 #define WHITE 2
 
-#define LAYER_NUM 3
+#define LAYER_NUM 2
 
 #define container_of(ptr, type, member) ({          \
         const typeof( ((type *)0)->member ) *__mptr = (ptr);    \
