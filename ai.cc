@@ -1,6 +1,7 @@
 #include "gobang.h"
 #include "chess_lib.h"
-#include <stdlib.h>
+#include <cstdlib>
+#include <climits>
 
 #include <algorithm>
 
@@ -41,32 +42,46 @@ void minimax_search(gametree_node *&root, int layer_number,
         copy(ptmp[i], ptmp[i] + CK_SIZE, root->chessboard[i]);
     }
 
-    int max_score = 0;
-    
+    // 记录每一层最终选出的落子点及分数
+    int dummy_score = INT_MIN;
+    int dummy_x = -1, dummy_y = -1;
+
     for (int i = 0; i < CK_SIZE; i++) {
         for (int j = 0; j < CK_SIZE; j++) {
             if (root->chessboard[i][j] == 0) {
+                // 将有空位的点临时放置一个子
                 root->x = j;
                 root->y = i;
                 root->chessboard[i][j] = layer_number % 2 ? BLACK : WHITE;
 
                 minimax_search(root->next, layer_number + 1, y, x);
+                int tmp_score = evaluation(i, j);
 
                 if (LAYER_NUM == layer_number) {
-                    int tmp_score = evaluation(i, j);
-                    if (tmp_score > max_score) {
-                        max_score = tmp_score;
-                        gametree_node *pdummy = root;
-
-                        while (pdummy->prev != nullptr) {
-                            pdummy->prev->_y = root->y;
-                            pdummy->prev->_x = root->x;
-                            pdummy->prev->_score = tmp_score;
-                            pdummy = pdummy->prev;
+                    if (tmp_score > dummy_score || INT_MIN == dummy_score) {
+                        dummy_score = tmp_score;
+                        dummy_x = root->x;
+                        dummy_y = root->y;
+                    }
+                } else if (layer_number == 0) {
+                    if (root->_score > dummy_score || INT_MIN == dummy_score) {
+                        dummy_score = root->_score;
+                        x = root->x;
+                        y = root->y;
+                    }
+                } else {
+                    if (layer_number % 2 == 0) {
+                        if (root->_score > dummy_score || INT_MIN == dummy_score) {
+                            dummy_score = root->_score;
+                            dummy_x = root->x;
+                            dummy_y = root->y;
                         }
-
-                        x = pdummy->x;
-                        y = pdummy->y;
+                    } else {
+                        if (root->_score < dummy_score || INT_MIN == dummy_score) {
+                            dummy_score = root->_score;
+                            dummy_x = root->x;
+                            dummy_y = root->y;
+                        }
                     }
                 }
                 
@@ -75,17 +90,25 @@ void minimax_search(gametree_node *&root, int layer_number,
         }
     }
 
+    if (layer_number != 0) {
+        root->prev->_x = dummy_x;
+        root->prev->_y = dummy_y;
+        root->prev->_score = dummy_score;
+    } else {
+        x = dummy_x;
+        y = dummy_y;
+    }
+    
+
     free(root);
     root = nullptr;
 }
-
-
 
 /*
  * 评估函数
  */
 int evaluation(int _y, int _x) {
-    return position_score[_y][_x];
+    //return position_score[_y][_x];
 }
 
 
