@@ -24,7 +24,7 @@ $(EXEC): $(OBJS)
 
 main.o: gobang.h
 
-ai.o: gobang.h chess_lib.h
+ai.o: gobang.h chess_library.h
 
 %.o: %.cc
 	$(CXX) -o $@ $(CXXFLAGS) $(CHARSET) $<

@@ -1,5 +1,5 @@
 #include "gobang.h"
-#include "chess_lib.h"
+#include "chess_library.h"
 #include <cstdlib>
 #include <climits>
 
@@ -105,10 +105,72 @@ void minimax_search(gametree_node *&root, int layer_number,
 }
 
 /*
- * 评估函数
+ * 评估函数，只针对某一方估值
  */
-int evaluation(int _y, int _x) {
-    //return position_score[_y][_x];
+int evaluation(int _y, int _x, int (*chessboard)[CK_SIZE], int color) {
+    char buf[] = "*******";
+    int max_score = 0, dummy_score = 0;
+    
+    /*
+     * 先横向分析
+     */
+    for (int i = 0; i < CK_SIZE - CHESSTYPE_SIZE + 1; i++) {
+        // 将待匹配的区段复制到 buf 中
+        for (int j = 0, k = i; j < CHESSTYPE_SIZE; j++, k++) {
+            if (chessboard[_y][k] == 0) 
+                buf[j] = '0';
+            else if (chessboard[_y][k] == color)
+                buf[j] = '1';
+            else
+                buf[j] = '2';
+        }
+        
+        /*
+         * 默认棋型长度为 7，如果未匹配到，则逐步减小棋型长度，直到最小长度 4
+         */
+        for (int i = 0; i <= 3; i++) {
+            if ((dummy_score = chess_type[buf]) != 0)
+                break;
+            buf[CHESSTYPE_SIZE - 1 - i] = '*';
+        }
+
+        if (dummy_score > max_score)
+            max_score = dummy_score;
+    }
+    
+    /*
+     * 纵向分析
+     */
+    for (int i = 0; i < CK_SIZE - CHESSTYPE_SIZE + 1; i++) {
+        for (int j = 0, k = i; j < CHESSTYPE_SIZE; j++, k++) {
+            if (chessboard[k][_x] == 0) 
+                buf[j] = '0';
+            else if (chessboard[k][_x] == color) 
+                buf[j] = '1';
+            else
+                buf[j] = '2';
+        }
+
+        for (int i = 0; i <= 3; i++) {
+            if ((dummy_score = chess_type[buf]) != 0)
+                break;
+            buf[CHESSTYPE_SIZE - 1 - i] = '*';
+        }
+
+        if (dummy_score > max_score)
+            max_score = dummy_score;
+    }
+
+    /*
+     * 左斜方向分析
+     */
+    int diff =  _x < _y ? _x : _y;
+    for (int i = _x - diff, j = _y - diff; 
+        i < CK_SIZE && j < CK_SIZE; i++, j++) {
+        
+    }
+
+    return max_score;
 }
 
 
