@@ -2,11 +2,12 @@
 #include "chess_library.h"
 #include <cstdlib>
 #include <climits>
+#include <cstring>
 
 #include <algorithm>
 
 #define LEN_TYPE 5
-int evaluation(int _y, int _x);
+int evaluation(int _y, int _x, int (*chessboard)[CK_SIZE], int color);
 /*
  * 博弈树的节点
  */
@@ -55,7 +56,7 @@ void minimax_search(gametree_node *&root, int layer_number,
                 root->chessboard[i][j] = layer_number % 2 ? BLACK : WHITE;
 
                 minimax_search(root->next, layer_number + 1, y, x);
-                int tmp_score = evaluation(i, j);
+                int tmp_score = evaluation(i, j, root->chessboard, BLACK);
 
                 if (LAYER_NUM == layer_number) {
                     if (tmp_score > dummy_score || INT_MIN == dummy_score) {
@@ -84,7 +85,7 @@ void minimax_search(gametree_node *&root, int layer_number,
                         }
                     }
                 }
-                
+                 
                 root->chessboard[i][j] = 0;
             }
         }
@@ -99,7 +100,6 @@ void minimax_search(gametree_node *&root, int layer_number,
         y = dummy_y;
     }
     
-
     free(root);
     root = nullptr;
 }
@@ -108,66 +108,116 @@ void minimax_search(gametree_node *&root, int layer_number,
  * 评估函数，只针对某一方估值
  */
 int evaluation(int _y, int _x, int (*chessboard)[CK_SIZE], int color) {
-    char buf[] = "*******";
+    char buf[8];
     int max_score = 0, dummy_score = 0;
     
     /*
      * 先横向分析
      */
-    for (int i = 0; i < CK_SIZE - CHESSTYPE_SIZE + 1; i++) {
+    for (int i = 0; i < CK_SIZE - MIN_SIZE + 1; i++) {
+        memset(buf, 0, sizeof(buf));
         // 将待匹配的区段复制到 buf 中
-        for (int j = 0, k = i; j < CHESSTYPE_SIZE; j++, k++) {
-            if (chessboard[_y][k] == 0) 
-                buf[j] = '0';
-            else if (chessboard[_y][k] == color)
-                buf[j] = '1';
-            else
-                buf[j] = '2';
-        }
-        
-        /*
-         * 默认棋型长度为 7，如果未匹配到，则逐步减小棋型长度，直到最小长度 4
-         */
-        for (int i = 0; i <= 3; i++) {
-            if ((dummy_score = chess_type[buf]) != 0)
-                break;
-            buf[CHESSTYPE_SIZE - 1 - i] = '*';
+        for (int j = 0, k = i; j < MIN_SIZE; j++, k++) {
+            if (chessboard[_y][k] == EMPTY) buf[j] = NO_PIECE;
+            else if (chessboard[_y][k] == color) buf[j] = OUR;
+            else buf[j] = ENEMY;
         }
 
-        if (dummy_score > max_score)
-            max_score = dummy_score;
+        for (int j = 0; j < MAX_SIZE - MIN_SIZE; j++) {
+            if ((dummy_score = chess_type[buf]) != 0) 
+                break;
+            if (chessboard[_y][i + MIN_SIZE + j] == EMPTY) 
+                buf[MIN_SIZE + j] = NO_PIECE;
+            else if (chessboard[_y][i + MIN_SIZE + j] == color) 
+                buf[MIN_SIZE + j] = OUR;
+            else
+                buf[MIN_SIZE + j] = ENEMY;
+        }
+
+        if (dummy_score > max_score) max_score = dummy_score;
     }
-    
+
     /*
      * 纵向分析
      */
-    for (int i = 0; i < CK_SIZE - CHESSTYPE_SIZE + 1; i++) {
-        for (int j = 0, k = i; j < CHESSTYPE_SIZE; j++, k++) {
-            if (chessboard[k][_x] == 0) 
-                buf[j] = '0';
-            else if (chessboard[k][_x] == color) 
-                buf[j] = '1';
-            else
-                buf[j] = '2';
+    for (int i = 0; i < CK_SIZE - MIN_SIZE + 1; i++) {
+        memset(buf, 0, sizeof(buf));
+
+        for (int j = 0, k = i; j < MIN_SIZE; j++, k++) {
+            if (chessboard[k][_x] == EMPTY) buf[j] = NO_PIECE;
+            else if (chessboard[k][_x] == color) buf[j] = OUR;
+            else buf[j] = ENEMY;
         }
 
-        for (int i = 0; i <= 3; i++) {
-            if ((dummy_score = chess_type[buf]) != 0)
+        for (int j = 0; j < MAX_SIZE - MIN_SIZE; j++) {
+            if ((dummy_score = chess_type[buf]) != 0) 
                 break;
-            buf[CHESSTYPE_SIZE - 1 - i] = '*';
+            if (chessboard[i + MIN_SIZE + j][_x] == 0) 
+                buf[MIN_SIZE + j] = NO_PIECE;
+            else if (chessboard[i + MIN_SIZE + j][_x] == color)
+                buf[MIN_SIZE + j] = OUR;
+            else
+                buf[MIN_SIZE + j] = ENEMY;
         }
-
-        if (dummy_score > max_score)
-            max_score = dummy_score;
+        
+        if (dummy_score > max_score) max_score = dummy_score;
     }
 
     /*
      * 左斜方向分析
      */
-    int diff =  _x < _y ? _x : _y;
-    for (int i = _x - diff, j = _y - diff; 
-        i < CK_SIZE && j < CK_SIZE; i++, j++) {
-        
+    int diff = _x < _y ? _x : _y;
+    for (int i = _y - diff, j = _x - diff; 
+         i <= CK_SIZE - MIN_SIZE + 1 && j <= CK_SIZE - MIN_SIZE + 1;
+         i++, j++) {
+        memset(buf, 0, sizeof(buf));
+
+        for (int k = 0, l = i, m = j; k < MIN_SIZE; k++, l++, m++) {
+            if (chessboard[i][j] == EMPTY) buf[k] = NO_PIECE;
+            else if (chessboard[i][j] == color) buf[j] = OUR;
+            else buf[j] = ENEMY;
+        }
+
+        for (int k = 0; k < MAX_SIZE - MIN_SIZE; j++) {
+            if ((dummy_score = chess_type[buf]) != 0)
+                break;
+            if (chessboard[i + MIN_SIZE + k][j + MIN_SIZE + k] == EMPTY)
+                buf[MIN_SIZE + 1] = NO_PIECE;
+            else if (chessboard[i + MIN_SIZE + k][j + MIN_SIZE + k] == color)
+                buf[MIN_SIZE + k] = OUR;
+            else
+                buf[MIN_SIZE + k] = ENEMY;
+        }
+
+        if (dummy_score > max_score) max_score = dummy_score;
+    }
+
+    /*
+     * 右斜方向分析
+     */
+    int i, j;
+    for (i = _y, j = _x; i < CK_SIZE - 1 && j > 0; i++, j--);
+
+    for ( ; i != MIN_SIZE - 2 && j != CK_SIZE - MIN_SIZE; i--, j++) {
+        memset(buf, 0, sizeof(buf));
+        for (int k = 0, l = i, m = j; k < MIN_SIZE; k++, l--, m++) {
+            if (chessboard[l][m] == EMPTY) buf[j] = NO_PIECE;
+            else if (chessboard[l][m] == color) buf[j] = OUR;
+            else buf[j] = ENEMY;
+        }
+
+        for (int k = 0; k < MAX_SIZE - MIN_SIZE; k++) {
+            if ((dummy_score = chess_type[buf]) != 0)
+                break;
+            if (chessboard[i - MIN_SIZE - k][j + MIN_SIZE + k] == EMPTY)
+                buf[MIN_SIZE + k] = NO_PIECE;
+            else if (chessboard[i - MIN_SIZE - k][j + MIN_SIZE + k] == color)
+                buf[MIN_SIZE + k] = OUR;
+            else
+                buf[MIN_SIZE + k] = ENEMY;
+        }
+
+        if (dummy_score > max_score) max_score = dummy_score;
     }
 
     return max_score;
