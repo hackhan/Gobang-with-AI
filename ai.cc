@@ -1,17 +1,7 @@
 /*
- * Copyright (C) 2016 Chent, all rights reserved.
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License 
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 用于计算机博弈的极大极小搜索（加入了 α-β 剪枝）以及估值函数
+ * 作者：易水寒
+ * QQ: 604726221
  */
 #include "gobang.h"
 #include "chess_library.h"
@@ -19,6 +9,9 @@
 #include <climits>
 #include <cstring>
 #include <algorithm>
+
+#define MAX_LAY(n) (n % 2 == 0)
+#define MIN_LAY(n) (n % 2 == 1)
 
 int evaluation(const int _y, const int _x, 
                int (*chessboard)[CK_SIZE], int color);
@@ -67,8 +60,8 @@ void minimax_search(gametree_node *&root,
     for (int i = 0; i < CK_SIZE; i++)
         copy(p[i], p[i] + CK_SIZE, root->chessboard[i]);
 
-    int dummy_score = INT_MIN;
-    int dummy_x = INT_MIN, dummy_y = INT_MIN;
+    // int dummy_score = INT_MIN;
+    // int dummy_x = INT_MIN, dummy_y = INT_MIN;
 
     if (ln == 0) minimax_search(root->next, ln + 1, y, x);
     /*
@@ -81,7 +74,16 @@ void minimax_search(gametree_node *&root,
                 root->x = j;
                 root->chessboard[i][j] = ln % 2 ? our_color : enemy_color;
 
-                minimax_search(root->next, ln + 1, y, x);
+                /*
+                 * α-β 剪枝
+                 */
+                if ((MAX_LAY(ln) && root->_score < root->prev->_score) ||
+                    root->_score == INT_MIN)
+                    minimax_search(root->next, ln + 1, y, x);
+                else if ((MIN_LAY(ln) && root->_score > root->prev->_score) ||
+                    root->_score == INT_MIN)
+                    minimax_search(root->next, ln + 1, y, x);
+
                 int eval_score;
 
                 /*
@@ -94,32 +96,29 @@ void minimax_search(gametree_node *&root,
                                  evaluation(root->prev->y, root->prev->x, 
                                             root->chessboard, 
                                             ln % 2 ? enemy_color : our_color);
-                    /*
-                     * 如果是奇数层，则选出最小值反馈给上层，
-                     * 否则选出最大值反馈给上层
-                     */
-                    if (ln % 2 && (dummy_score == INT_MIN || 
-                        eval_score < dummy_score)) {
-                        dummy_score = eval_score;
-                        dummy_y = root->y;
-                        dummy_x = root->x;
-                    } else if (ln % 2 == 0 && (dummy_score == INT_MIN || 
-                        eval_score > dummy_score)) {
-                        dummy_score = eval_score;
-                        dummy_y = root->y;
-                        dummy_x = root->x;
+                    
+                    if (MAX_LAY(ln - 1) && (root->prev->_score == INT_MIN ||
+                        eval_score > root->prev->_score)) {
+                        root->prev->_score = eval_score;
+                        root->prev->_y = root->y;
+                        root->prev->_x = root->x;
+                    } else if (MIN_LAY(ln - 1) && (root->prev->_score == INT_MIN ||
+                        eval_score < root->prev->_score)) {
+                        root->prev->_score = eval_score;
+                        root->prev->_y = root->y;
+                        root->prev->_x = root->x;
                     }
                 } else {
-                    if (ln % 2 && (dummy_score == INT_MIN || 
-                        root->_score < dummy_score)) {
-                        dummy_score = root->_score;
-                        dummy_y = root->y;
-                        dummy_x = root->x;
-                    } else if (ln % 2 == 0 && (dummy_score == INT_MIN || 
-                        root->_score > dummy_score)) {
-                        dummy_score = root->_score;
-                        dummy_y = root->y;
-                        dummy_x = root->x;
+                    if (MAX_LAY(ln - 1) && (root->prev->_score == INT_MIN ||
+                        root->_score > root->prev->_score)) {
+                        root->prev->_score = root->_score;
+                        root->prev->_y = root->y;
+                        root->prev->_x = root->x;
+                    } else if (MIN_LAY(ln - 1) && (root->prev->_score == INT_MIN ||
+                        root->_score < root->prev->_score)) {
+                        root->prev->_score = root->_score;
+                        root->prev->_y = root->y;
+                        root->prev->_x = root->x;
                     }
                 }
                 root->chessboard[i][j] = EMPTY;
@@ -127,18 +126,21 @@ void minimax_search(gametree_node *&root,
         }
     }
     
-    if (ln != 0) {
-        root->prev->_score = dummy_score;
-        root->prev->_y = dummy_y;
-        root->prev->_x = dummy_x;
-    } else {
-        y = root->y;
-        x = root->x;
+    if (ln == 0) {
+        y = root->_y;
+        x = root->_x;
     }
 
     free(root);
     root = nullptr;
 }   
+
+/*
+ * α-β 剪枝
+ */
+// bool alphabeta(int ln) {
+
+// }
 
 /*
  * 评估函数，只针对某一方估值
