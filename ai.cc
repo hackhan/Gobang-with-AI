@@ -1,7 +1,7 @@
 /*
  * 用于计算机博弈的极大极小搜索（加入了 α-β 剪枝）以及估值函数
  * 作者：易水寒
- * QQ: 604726221
+ * E-mail: 604726221@qq.com
  */
 #include "gobang.h"
 #include "chess_library.h"
@@ -10,8 +10,8 @@
 #include <cstring>
 #include <algorithm>
 
-#define MAX_LAY(n) (n % 2 == 0)
-#define MIN_LAY(n) (n % 2 == 1)
+#define MAX_LAY(n) ((n) % 2 == 0)
+#define MIN_LAY(n) ((n) % 2 == 1)
 
 int evaluation(const int _y, const int _x, 
                int (*chessboard)[CK_SIZE], int color);
@@ -60,10 +60,8 @@ void minimax_search(gametree_node *&root,
     for (int i = 0; i < CK_SIZE; i++)
         copy(p[i], p[i] + CK_SIZE, root->chessboard[i]);
 
-    // int dummy_score = INT_MIN;
-    // int dummy_x = INT_MIN, dummy_y = INT_MIN;
-
     if (ln == 0) minimax_search(root->next, ln + 1, y, x);
+
     /*
      * 遍历每一个空位，产生所有可能的走法
      */
@@ -73,16 +71,6 @@ void minimax_search(gametree_node *&root,
                 root->y = i;
                 root->x = j;
                 root->chessboard[i][j] = ln % 2 ? our_color : enemy_color;
-
-                /*
-                 * α-β 剪枝
-                 */
-                if ((MAX_LAY(ln) && root->_score < root->prev->_score) ||
-                    root->_score == INT_MIN)
-                    minimax_search(root->next, ln + 1, y, x);
-                else if ((MIN_LAY(ln) && root->_score > root->prev->_score) ||
-                    root->_score == INT_MIN)
-                    minimax_search(root->next, ln + 1, y, x);
 
                 int eval_score;
 
@@ -121,7 +109,24 @@ void minimax_search(gametree_node *&root,
                         root->prev->_x = root->x;
                     }
                 }
+
+                /*
+                 * alpha-beta 剪枝
+                 */
+                if (ln >= 2 && root->prev->prev->_score != INT_MIN) {
+                    if (MAX_LAY(ln - 1) && 
+                        root->prev->_score >= root->prev->prev->_score) {
+                        i = CK_SIZE;
+                        break;
+                    } else if (MIN_LAY(ln - 1) &&
+                        root->prev->_score <= root->prev->prev->_score) {
+                        i = CK_SIZE;
+                        break;
+                    }
+                }
+
                 root->chessboard[i][j] = EMPTY;
+
             }
         }
     }
@@ -136,14 +141,7 @@ void minimax_search(gametree_node *&root,
 }   
 
 /*
- * α-β 剪枝
- */
-// bool alphabeta(int ln) {
-
-// }
-
-/*
- * 评估函数，只针对某一方估值
+ * 针对某一方估值
  */
 int evaluation(const int _y, const int _x, 
                int (*chessboard)[CK_SIZE], int color) {
