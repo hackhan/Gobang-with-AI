@@ -62,6 +62,20 @@ void minimax_search(gametree_node *&root,
     for (int i = 0; i < CK_SIZE; i++)
         copy(p[i], p[i] + CK_SIZE, root->chessboard[i]);
 
+    auto search = [ln, root](int &cscore, int &uscore) {
+        if (MAX_LAY(ln - 1) &&
+            (uscore == INT_MIN || cscore > uscore)) {
+            uscore = cscore;
+            root->prev->_y = root->y;
+            root->prev->_x = root->x;
+        } else if (MIN_LAY(ln - 1) &&
+            (uscore == INT_MIN || cscore < uscore)) {
+            uscore = cscore;
+            root->prev->_y = root->y;
+            root->prev->_x = root->x;
+        }
+    };
+
     if (ln == 0) minimax_search(root->next, ln + 1, y, x);
 
     /*
@@ -86,34 +100,9 @@ void minimax_search(gametree_node *&root,
                                  evaluation(root->prev->y, root->prev->x, 
                                             root->chessboard, 
                                             ln % 2 ? enemy_color : our_color);
-                    
-                    if (MAX_LAY(ln - 1) && 
-                        (root->prev->_score == INT_MIN ||
-                        eval_score > root->prev->_score)) {
-                        root->prev->_score = eval_score;
-                        root->prev->_y = root->y;
-                        root->prev->_x = root->x;
-                    } else if (MIN_LAY(ln - 1) && 
-                        (root->prev->_score == INT_MIN ||
-                        eval_score < root->prev->_score)) {
-                        root->prev->_score = eval_score;
-                        root->prev->_y = root->y;
-                        root->prev->_x = root->x;
-                    }
+                    search(eval_score, root->prev->_score);
                 } else {
-                    if (MAX_LAY(ln - 1) && 
-                        (root->prev->_score == INT_MIN ||
-                        root->_score > root->prev->_score)) {
-                        root->prev->_score = root->_score;
-                        root->prev->_y = root->y;
-                        root->prev->_x = root->x;
-                    } else if (MIN_LAY(ln - 1) && 
-                        (root->prev->_score == INT_MIN ||
-                        root->_score < root->prev->_score)) {
-                        root->prev->_score = root->_score;
-                        root->prev->_y = root->y;
-                        root->prev->_x = root->x;
-                    }
+                    search(root->_score, root->prev->_score);
                 }
 
                 /*
@@ -134,12 +123,11 @@ void minimax_search(gametree_node *&root,
             }
         }
     }
-    
+
     if (ln == 0) {
         y = root->_y;
         x = root->_x;
     }
-
     free(root);
     root = nullptr;
 }   
@@ -174,26 +162,20 @@ int evaluation(const int _y,
         else return ENEMY;
     };
 
-    /******************** 横向分析 ********************/
-
-    /*
-     * 将对应落子点的“横向”拷贝到 segment 中
-     */
-    for (int i = 0; i < CK_SIZE; i++) {
-        segment[i] = copy_seg(chessboard[_y][i]);
-    }
-
     /*
      * 匹配 chess_type 中的棋型
      */
-    auto match = [&sub_segment, &segment, &chess_type, &_count] 
+    auto match = [&sub_segment, &segment, &chess_type, &_count, &score] 
                  (const int size, const int sub_size) {
-        for (int i = 0; i <= size - sub_size; i++) {
+        for (int i = 0; sub_size <= size && 
+            i <= size - sub_size; i++) {
+            memset(sub_segment, 0, sizeof(sub_segment));
             for (int j = 0, k = i; j < sub_size; j++, k++) {
                 sub_segment[j] = segment[k];
             }
 
             int _score = chess_type[sub_segment];
+            score += _score;
 
             switch(_score) {
                 case 500: _count[0]++; break;
@@ -205,10 +187,86 @@ int evaluation(const int _y,
         }
     };
 
+    /******************** 横向分析 ********************/
+
+    /*
+     * 将对应落子点的“横向”拷贝到 segment 中
+     */
+    for (int i = 0; i < CK_SIZE; i++) {
+        segment[i] = copy_seg(chessboard[_y][i]);
+    }
+
     match(CK_SIZE, MIN_SIZE);
     match(CK_SIZE, MIN_SIZE + 1);
     match(CK_SIZE, MIN_SIZE + 2);
     match(CK_SIZE, MIN_SIZE + 3);
+
+    memset(segment, 0, sizeof(segment));
+
+    /******************** 纵向分析 ********************/
+
+    /*
+     * 将对应落子点的“纵向”拷贝到 segment 中
+     */
+    for (int i = 0; i < CK_SIZE; i++) {
+        segment[i] = copy_seg(chessboard[i][_x]);
+    }
+
+    match(CK_SIZE, MIN_SIZE);
+    match(CK_SIZE, MIN_SIZE + 1);
+    match(CK_SIZE, MIN_SIZE + 2);
+    match(CK_SIZE, MIN_SIZE + 3);
+
+    memset(segment, 0, sizeof(segment));
+
+    /******************** '\'向分析 ********************/
+    int dif = _x < _y ? _x : _y;
+    for (int i = _y - dif, j = _x - dif, k = 0;
+        i < CK_SIZE && j < CK_SIZE; i++, j++, k++) {
+        segment[k] = copy_seg(chessboard[i][j]);
+    }
+
+    match(CK_SIZE - (_x < _y ? _y - _x : _x - _y), MIN_SIZE);
+    match(CK_SIZE - (_x < _y ? _y - _x : _x - _y), MIN_SIZE + 1);
+    match(CK_SIZE - (_x < _y ? _y - _x : _x - _y), MIN_SIZE + 2);
+    match(CK_SIZE - (_x < _y ? _y - _x : _x - _y), MIN_SIZE + 3);
+
+    memset(segment, 0, sizeof(segment));
+
+    /******************** '/'向分析 ********************/
+
+    /*
+     * 获取初始 x、y 的坐标
+     */
+    int ix, iy;
+    for (iy = _y, ix = _x; iy < CK_SIZE - 1 && ix > 0; 
+        iy++, ix--);
+
+    int len = 0;
+    for (int i = iy, j = ix, k = 0; i >= 0 && j < CK_SIZE; 
+        i--, j++, k++, len++) {
+        segment[k] = copy_seg(chessboard[i][j]);
+    }
+
+    match(len, MIN_SIZE);
+    match(len, MIN_SIZE + 1);
+    match(len, MIN_SIZE + 2);
+    match(len, MIN_SIZE + 3);
+
+    memset(segment, 0, sizeof(segment));
+
+    /*
+     * 判断组合棋型
+     */
+    if (_count[0] > 1) score += 10000;                      // 双冲四
+    if (_count[0] > 0 && _count[1] > 0) score += 10000;     // 冲四活三
+    if (_count[1] > 1) score += 5000;                       // 双活三
+    if (_count[1] > 0 && _count[2] > 0) score += 1000;      // 活三眠三
+    if (_count[3] > 1) score += 100;                        // 双活二
+    if (_count[3] > 0 && _count[4] > 0) score += 10;        // 活二眠二
+
+    memset(_count, 0, sizeof(_count));
+    return score;
 }
 
 void ai(int &x, int &y) {
