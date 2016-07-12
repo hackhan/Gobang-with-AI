@@ -40,7 +40,7 @@ extern bool setblack;
 #define ENEMY    '2' 
 
 unordered_map<string, size_t> chess_type = {
-    // 长连
+    // 五连
     {"11111", 100000},
     // 活四
     {"011110", 10000},

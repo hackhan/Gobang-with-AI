@@ -19,12 +19,12 @@ CHARSET=-finput-charset=UTF-8 \
 all: $(EXEC)
 
 $(EXEC): $(OBJS)
-	$(CXX) -o $@ $^ $(LIBS) -mwindows
+	$(CXX) -o $@ $^ $(LIBS) 
 	@echo '********** Compile successfully! **********'
 
 main.o: gobang.h
 
-ai.o: gobang.h chess_library.h
+ai.o: gobang.h chess_library.h openbook.h
 
 %.o: %.cc
 	$(CXX) -o $@ $(CXXFLAGS) $(CHARSET) $<

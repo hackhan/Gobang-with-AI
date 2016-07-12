@@ -5,7 +5,10 @@
  */
 #include "gobang.h"
 #include "chess_library.h"
+#include "openbook.h"
+#include <windows.h>
 #include <cstdlib>
+#include <cstdio>
 #include <climits>
 #include <cstring>
 #include <algorithm>
@@ -17,6 +20,10 @@ int evaluation(const int _y,
                const int _x, 
                const int (*chessboard) [CK_SIZE], 
                const int color);
+
+extern int step_count;
+extern bool ai_is_sente;
+
 /*
  * 博弈树的节点
  */
@@ -270,6 +277,24 @@ int evaluation(const int _y,
 }
 
 void ai(int &x, int &y) {
+    /*
+     * 给出一种开局
+     */
+    if (ai_is_sente && step_count <= 3) {
+        if (step_count == 0) {
+            y = x = CK_SIZE / 2;
+        } else if (step_count == 1) {
+            y = open_book[2][0];
+            x = open_book[2][1];
+        } else if (step_count == 2) {
+            y = open_book[2][2];
+            x = open_book[2][3];
+        }// else if (step_count == 3) {
+        //     MessageBox(NULL, "对方是否要求换子？", "三手可换", MB_YESNO);
+        // }
+        return;
+    } 
+    
     gametree_node *root = nullptr;
     minimax_search(root, 0, y, x);
 }
