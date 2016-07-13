@@ -24,8 +24,6 @@ int main() {
     setcaption("五子棋");
     setbkcolor(EGERGB(218, 165, 105));
 
-    
-
     bool flag = select_order();
     draw_board();
 
@@ -174,6 +172,30 @@ void draw_board() {
     delimage(img);
 }
 
+void message_box(const char *s1, 
+                 const char *s2, 
+                 int font_size) {
+    setfont(-font_size, 0, "宋体");
+    outtextrect(17 * UNIT_SIZE + 15, 7 * UNIT_SIZE, 
+                7 * UNIT_SIZE, 2 * UNIT_SIZE, s1);
+    outtextxy(20 * UNIT_SIZE, 9 * UNIT_SIZE, s2);
+
+    for (mouse_msg msg = {0}; is_run(); delay_fps(60)) {
+        while (mousemsg()) msg = getmouse();
+        if (msg.is_up()) {
+            if (msg.x >= 20 * UNIT_SIZE && 
+                msg.x <= 22 * UNIT_SIZE &&
+                msg.y >= 9 * UNIT_SIZE &&
+                msg.y <= 10 * UNIT_SIZE) {
+                outtextrect(17 * UNIT_SIZE + 15, 7 * UNIT_SIZE, 
+                            7 * UNIT_SIZE, 2 * UNIT_SIZE, "                                        ");
+                outtextxy(17 * UNIT_SIZE + 15, 9 * UNIT_SIZE, "                  ");
+                break;
+            }
+        }
+    }
+}
+
 bool set_chess(int x, int y) {
     if (position[y][x] != EMPTY || y >= CK_SIZE || x >= CK_SIZE)
         return false;
@@ -181,18 +203,16 @@ bool set_chess(int x, int y) {
     if (!ai_is_sente) {
         if (step_count == 0 && (x != CK_SIZE / 2 || 
             y != CK_SIZE / 2)) {
-            MessageBox(NULL, "第一子未落在天元处！", "开局不合法！", 
-                       MB_OK | MB_ICONWARNING);
+            message_box("第一子未落在天元处！", "确定", 23);
             return false;
         } else if (step_count == 1 && 
             (x < 6 || x > 8 || y < 6 || y > 8)) {
-            MessageBox(NULL, "第二子未落在与天元直接相连的8个点上！", 
-                       "开局不合法！", MB_OK | MB_ICONWARNING);
+            message_box("第二子未落在与天元直接相连的8个点上！", 
+                        "确定", 23);
             return false;
         } else if (step_count == 2 && 
             (x < 5 || x > 9 || y < 5 || y > 9)) {
-            MessageBox(NULL, "第三子未落在指定范围内！", "开局不合法！", 
-                       MB_OK | MB_ICONWARNING);
+            message_box("第三子未落在指定范围内！", "确定", 23);
             return false;
         }
     }
