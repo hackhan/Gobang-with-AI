@@ -1,3 +1,8 @@
+/*
+ * 该程序的主要界面逻辑
+ * 作者：易水寒
+ * E-mail: 604726221@qq.com
+ */
 #include <graphics.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -19,8 +24,7 @@ int main() {
     setcaption("五子棋");
     setbkcolor(EGERGB(218, 165, 105));
 
-    // 清空键盘输入
-    for (key_msg k = {0}; k = getkey(), k.key != key_enter;);
+    
 
     bool flag = select_order();
     draw_board();
@@ -35,8 +39,7 @@ int main() {
         if (flag) {
             ai(x, y);
         } else {
-            mouse_msg msg = {0};
-            for (; is_run(); delay_fps(60)) {
+            for (mouse_msg msg = {0}; is_run(); delay_fps(60)) {
                 while (mousemsg())
                     msg = getmouse();
                 if (msg.is_up()) {
@@ -51,22 +54,40 @@ int main() {
             if (step_count > 2) 
                 flag = !flag;
             /*
-             * 三手可换
+             * 三手可换规则
              */
             if (ai_is_sente && step_count == 3) {
-                // MessageBox(NULL, "对方是否要求换子？", "三手可换", 
-                //            MB_YESNO) == IDYES ? (flag = true) : (flag = false);
+                setfont(-19, 0, "宋体");
+                outtextxy(18 * UNIT_SIZE + 10, 2 * UNIT_SIZE, "对方是否要求换子？");
+                outtextxy(19 * UNIT_SIZE + 10, 3 * UNIT_SIZE, "是");
+                outtextxy(22 * UNIT_SIZE, 3 * UNIT_SIZE, "否");
 
+                for (mouse_msg msg = {0}; is_run(); delay_fps(60)) {
+                    while (mousemsg()) msg = getmouse();
+                    if (msg.is_up()) {
+                        if (msg.x >= 19 * UNIT_SIZE + 10 && msg.x <= 23 * UNIT_SIZE &&
+                            msg.y >= 3 * UNIT_SIZE && msg.y <= 3 * UNIT_SIZE + 20) {
+                            if (msg.x >= 19 * UNIT_SIZE + 10 && msg.x <= 20 * UNIT_SIZE) {
+                                ai_is_sente = false;
+                                flag = true;
+                                setfont(-16, 0, "宋体");
+                                outtextxy(19 * UNIT_SIZE + 20, 20, "电脑执白子");
+                            }
+                            // 清空已无用的文字
+                            setfont(-19, 0, "宋体");
+                            outtextxy(18 * UNIT_SIZE + 10, 2 * UNIT_SIZE, "                ");
+                            outtextxy(19 * UNIT_SIZE + 10, 3 * UNIT_SIZE, "                ");
+                            break;
+                        }
+                    }
+                }
             }
         }
     } while (!is_gameover(x, y));
 
-    Sleep(10);
-    MessageBox(NULL, setblack ? " 白子胜！" : " 黑子胜！", "Game Over",
-               MB_OK | MB_ICONINFORMATION);
-
-    for (key_msg k = {0}; k = getkey(), k.key != key_esc;)
-        ;
+    setfont(-50, 0, "黑体");
+    outtextxy(17 * UNIT_SIZE + 15, 7 * UNIT_SIZE, setblack ? " 白子胜！" : " 黑子胜！");
+    for (key_msg k = {0}; k = getkey(), k.key != key_esc;);
     closegraph();
     return 0;
 }
@@ -83,9 +104,10 @@ bool select_order() {
     setfont(-16, 0, "宋体");
     outtextxy(5 * UNIT_SIZE, 10 * UNIT_SIZE, "↑ ↓ 选择  Enter 确定");
 
-    setfont(-16, 0, "宋体");
+    setfont(-19, 0, "宋体");
     // outtextrect(14 * UNIT_SIZE, UNIT_SIZE, 100, 100, "hello world.hello world.hello world.hello world.");
-
+    // 清空键盘输入
+    getkey();
     bool flag = true;
     for (key_msg k = {0}; k = getkey(), k.key != key_esc;) {
         switch (k.key) {
@@ -115,7 +137,10 @@ bool select_order() {
 void draw_board() {
     setcolor(EGERGB(0, 0, 0));
     setfillcolor(EGERGB(0, 0, 0));
-    char s[10];
+    char s[50];
+    sprintf(s, "%s%s%s", "电脑执", ai_is_sente ? "黑" : "白", "子");
+    setfont(-16, 0, "宋体");
+    outtextxy(19 * UNIT_SIZE + 20, 20, s);
 
     // 绘制网格线
     for (int i = 0; i < CK_SIZE; i++) {

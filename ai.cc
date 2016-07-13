@@ -289,9 +289,7 @@ void ai(int &x, int &y) {
         } else if (step_count == 2) {
             y = open_book[2][2];
             x = open_book[2][3];
-        }// else if (step_count == 3) {
-        //     MessageBox(NULL, "对方是否要求换子？", "三手可换", MB_YESNO);
-        // }
+        }
         return;
     } 
     
