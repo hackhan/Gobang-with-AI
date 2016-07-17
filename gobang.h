@@ -1,6 +1,8 @@
 #ifndef GOBANG_H
 #define GOBANG_H
 
+#include <graphics.h>
+
 #define CK_SIZE 15
 #define CELL_SIZE 30
 #define SHORTBAR_SIZE 1

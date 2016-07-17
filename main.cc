@@ -3,7 +3,6 @@
  * 作者：易水寒
  * E-mail: 604726221@qq.com
  */
-#include <graphics.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <windows.h>
@@ -97,27 +96,26 @@ int main() {
 bool select_order() {
     setcolor(EGERGB(0, 0, 0));
     setfont(-19, 0, "宋体");
-    outtextxy(6 * UNIT_SIZE - 4, 6 * UNIT_SIZE, "● 电脑先下");
-    outtextxy(6 * UNIT_SIZE - 4, 7 * UNIT_SIZE, "○ 玩家先下");
+    outtextxy(11 * UNIT_SIZE - 4, 6 * UNIT_SIZE, "● 电脑先下");
+    outtextxy(11 * UNIT_SIZE - 4, 7 * UNIT_SIZE, "○ 玩家先下");
     setfont(-16, 0, "宋体");
-    outtextxy(5 * UNIT_SIZE, 10 * UNIT_SIZE, "↑ ↓ 选择  Enter 确定");
+    outtextxy(10 * UNIT_SIZE, 10 * UNIT_SIZE, "↑ ↓ 选择  Enter 确定");
 
     setfont(-19, 0, "宋体");
-    // outtextrect(14 * UNIT_SIZE, UNIT_SIZE, 100, 100, "hello world.hello world.hello world.hello world.");
     // 清空键盘输入
     getkey();
     bool flag = true;
     for (key_msg k = {0}; k = getkey(), k.key != key_esc;) {
         switch (k.key) {
         case 38:
-            outtextxy(6 * UNIT_SIZE - 4, 6 * UNIT_SIZE, "●");
-            outtextxy(6 * UNIT_SIZE - 4, 7 * UNIT_SIZE, "○");
+            outtextxy(11 * UNIT_SIZE - 4, 6 * UNIT_SIZE, "●");
+            outtextxy(11 * UNIT_SIZE - 4, 7 * UNIT_SIZE, "○");
             flag = true;
             ai_is_sente = true;
             break;
         case 40:
-            outtextxy(6 * UNIT_SIZE - 4, 6 * UNIT_SIZE, "○");
-            outtextxy(6 * UNIT_SIZE - 4, 7 * UNIT_SIZE, "●");
+            outtextxy(11 * UNIT_SIZE - 4, 6 * UNIT_SIZE, "○");
+            outtextxy(11 * UNIT_SIZE - 4, 7 * UNIT_SIZE, "●");
             flag = false;
             ai_is_sente = false;
             break;
@@ -139,6 +137,7 @@ void draw_board() {
     sprintf(s, "%s%s%s", "电脑执", ai_is_sente ? "黑" : "白", "子");
     setfont(-16, 0, "宋体");
     outtextxy(19 * UNIT_SIZE + 20, 20, s);
+    outtextxy(20 * UNIT_SIZE, 15 * UNIT_SIZE, "黑方提议打点数：2");
 
     // 绘制网格线
     for (int i = 0; i < CK_SIZE; i++) {

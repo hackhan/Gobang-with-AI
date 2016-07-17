@@ -9,6 +9,7 @@
 #include <windows.h>
 #include <cstdlib>
 #include <cstdio>
+#include <ctime>
 #include <climits>
 #include <cstring>
 #include <algorithm>
@@ -23,6 +24,7 @@ int evaluation(const int _y,
 
 extern int step_count;
 extern bool ai_is_sente;
+extern vector<int> count_tw;
 
 /*
  * 博弈树的节点
@@ -276,6 +278,10 @@ int evaluation(const int _y,
     return score;
 }
 
+bool is_symmetry() {
+
+}
+
 void ai(int &x, int &y) {
     /*
      * 给出一种开局
@@ -293,6 +299,79 @@ void ai(int &x, int &y) {
         return;
     } 
     
+    /*
+     * 五手 N 打规则
+     */
+    if (step_count == 4) {
+        PIMAGE img = newimage();
+        getimage(img, "res/black.ico");
+
+        int mark;
+        if (position[5][8] == EMPTY && position[6][6] == EMPTY) {
+            putimage(8 * UNIT_SIZE, 5 * UNIT_SIZE, img);
+            putimage(6 * UNIT_SIZE, 6 * UNIT_SIZE, img);
+            mark = 1;
+        } else if (position[5][8] != EMPTY && position[6][6] == EMPTY) {
+            putimage(9 * UNIT_SIZE, 4 * UNIT_SIZE, img);
+            putimage(9 * UNIT_SIZE, 7 * UNIT_SIZE, img);
+            mark = 2;
+        } else if (position[5][8] == EMPTY && position[6][6] != EMPTY) {
+            putimage(7 * UNIT_SIZE, 4 * UNIT_SIZE, img);
+            putimage(8 * UNIT_SIZE, 6 * UNIT_SIZE, img);
+            mark = 3;
+        }
+
+        getimage(img, "res/+.png");
+
+        for (mouse_msg msg = {0}; is_run(); delay_fps(60)) {
+            while (mousemsg()) msg = getmouse();
+
+            if (msg.is_up()) {
+                switch (mark) {
+                    case 1:
+                        if (msg.x / UNIT_SIZE == 8 &&
+                            msg.y / UNIT_SIZE == 5) {
+                            putimage(6 * UNIT_SIZE, 6 * UNIT_SIZE, img);
+                            x = 8;
+                            y = 5;
+                        } else if (msg.x / UNIT_SIZE == 6 &&
+                            msg.y / UNIT_SIZE == 6) {
+                            putimage(8 * UNIT_SIZE, 5 * UNIT_SIZE, img);
+                            x = y = 6;
+                        }
+                        return;
+
+                    case 2:
+                        if (msg.x / UNIT_SIZE == 9 &&
+                            msg.y / UNIT_SIZE == 4) {
+                            putimage(9 * UNIT_SIZE, 4 * UNIT_SIZE, img);
+                            x = 9;
+                            y = 7;
+                        } else if (msg.x / UNIT_SIZE == 9 &&
+                            msg.y / UNIT_SIZE == 7) {
+                            putimage(9 * UNIT_SIZE, 7 * UNIT_SIZE, img);
+                            x = 9;
+                            y = 4;
+                        }
+                        return;
+
+                    case 3:
+                        if (msg.x / UNIT_SIZE == 7 &&
+                            msg.y / UNIT_SIZE == 4) {
+                            putimage(7 * UNIT_SIZE, 4 * UNIT_SIZE, img);
+                            x = 8;
+                            y = 6;
+                        } else if (msg.x / UNIT_SIZE == 8 &&
+                            msg.y / UNIT_SIZE == 6) {
+                            putimage(8 * UNIT_SIZE, 6 * UNIT_SIZE, img);
+                            x = 7;
+                            y = 4;
+                        }
+                        return;
+                }
+            }
+        }
+    }
     gametree_node *root = nullptr;
     minimax_search(root, 0, y, x);
 }
