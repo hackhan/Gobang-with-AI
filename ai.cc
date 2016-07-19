@@ -278,9 +278,6 @@ int evaluation(const int _y,
     return score;
 }
 
-bool is_symmetry() {
-
-}
 
 void ai(int &x, int &y) {
     /*
