@@ -1,5 +1,5 @@
 /*
- * 该程序的主要界面逻辑
+ * 主要界面逻辑
  * 作者：易水寒
  * E-mail: 604726221@qq.com
  */
@@ -36,13 +36,72 @@ int main() {
         if (flag) {
             ai(x, y);
         } else {
-            for (mouse_msg msg = {0}; is_run(); delay_fps(60)) {
-                while (mousemsg())
-                    msg = getmouse();
-                if (msg.is_up()) {
-                    x = msg.x / UNIT_SIZE;
-                    y = msg.y / UNIT_SIZE;
-                    break;
+            if (!ai_is_sente && step_count == 4) {
+                PIMAGE img = newimage();
+                vector<int> coord_buf;      // 保存第五手的所有落子点坐标，按 x、y 顺序存放
+                outtextxy(17 * UNIT_SIZE, 7 * UNIT_SIZE, "结束放子");
+                getimage(img, "res/black.png");
+
+                for (mouse_msg msg = {0}; is_run(); delay_fps(60)) {
+                    while (mousemsg()) msg = getmouse();
+
+                    if (msg.is_up()) {
+                        int _x = msg.x / UNIT_SIZE;
+                        int _y = msg.y / UNIT_SIZE;
+                        if (_x < CK_SIZE && _y < CK_SIZE && position[_y][_x] == EMPTY) {
+                            putimage(_x * UNIT_SIZE, _y * UNIT_SIZE, img);
+                            coord_buf.push_back(_x);
+                            coord_buf.push_back(_y);
+                        } else if (_x >= 17 && _x <= 20 &&
+                            _y >= 7 && _y <= 8) {
+                            outtextxy(17 * UNIT_SIZE, 7 * UNIT_SIZE, "                     ");
+                            x = coord_buf[0];
+                            y = coord_buf[1];
+
+                            for (auto it = coord_buf.cbegin() + 2; 
+                                it != coord_buf.cend(); it += 2) {
+                                /*
+                                 * 加载适当的图像以恢复棋盘
+                                 */
+                                if (*it == 0 && *(it + 1) == 0) 
+                                    getimage(img, "res/┌.png");
+                                else if (*it == CK_SIZE - 1 && *(it + 1) == 0)
+                                    getimage(img, "res/┐.png");
+                                else if (*it == 0 && *(it + 1) == CK_SIZE - 1)
+                                    getimage(img, "res/└.png");
+                                else if (*it == CK_SIZE - 1 && *(it + 1) == CK_SIZE - 1)
+                                    getimage(img, "res/┙.png");
+                                else if (*(it + 1) == 0 && *it != 0 && *it != CK_SIZE - 1) 
+                                    getimage(img, "res/┯.png");
+                                else if (*(it + 1) == CK_SIZE - 1 && *it != 0 && *it != CK_SIZE - 1)
+                                    getimage(img, "res/┴.png");
+                                else if (*it == 0 && *(it + 1) != 0 && *(it + 1) != CK_SIZE - 1)
+                                    getimage(img, "res/├.png");
+                                else if (*it == CK_SIZE - 1 && *(it + 1) != 0 && *(it + 1) != CK_SIZE - 1)
+                                    getimage(img, "res/┤.png");
+                                else if ((*it == 3 && *(it + 1) == 3) ||
+                                    (*it == 3 && *(it + 1) == 11) ||
+                                    (*it == 11 && *(it + 1) == 3) ||
+                                    (*it == 11 && *(it + 1) == 11))
+                                    getimage(img, "res/。.ico");
+                                else
+                                    getimage(img, "res/+.png");
+
+                                putimage(*it * UNIT_SIZE, *(it + 1) * UNIT_SIZE, img);
+                            }
+                            break;
+                        }
+                    }
+                }
+            } else {
+                for (mouse_msg msg = {0}; is_run(); delay_fps(60)) {
+                    while (mousemsg())
+                        msg = getmouse();
+                    if (msg.is_up()) {
+                        x = msg.x / UNIT_SIZE;
+                        y = msg.y / UNIT_SIZE;
+                        break;
+                    }
                 }
             }
         }
@@ -137,7 +196,9 @@ void draw_board() {
     sprintf(s, "%s%s%s", "电脑执", ai_is_sente ? "黑" : "白", "子");
     setfont(-16, 0, "宋体");
     outtextxy(19 * UNIT_SIZE + 20, 20, s);
-    outtextxy(20 * UNIT_SIZE, 15 * UNIT_SIZE, "黑方提议打点数：2");
+
+    if (ai_is_sente)
+        outtextxy(20 * UNIT_SIZE, 15 * UNIT_SIZE, "黑方提议打点数：2");
 
     // 绘制网格线
     for (int i = 0; i < CK_SIZE; i++) {
@@ -199,6 +260,9 @@ bool set_chess(int x, int y) {
     if (position[y][x] != EMPTY || y >= CK_SIZE || x >= CK_SIZE)
         return false;
 
+    /*
+     * 白方的指定开局
+     */
     if (!ai_is_sente) {
         if (step_count == 0 && (x != CK_SIZE / 2 || 
             y != CK_SIZE / 2)) {
