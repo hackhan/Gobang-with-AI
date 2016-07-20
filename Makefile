@@ -1,4 +1,4 @@
-# 编译环境 MinGW 4.9.2
+# 编译环境 MinGW32, g++ version 4.9.2
 # 采用 GNU C++ 11 标准
 
 CXX=g++
