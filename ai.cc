@@ -50,7 +50,7 @@ void minimax_search(gametree_node *&root,
     if (ln == LAYER_NUM + 1) return;
     
     int our_color = setblack ? BLACK : WHITE;
-    int enemy_color = setblack ? WHITE : BLACK;    
+    int enemy_color = setblack ? WHITE : BLACK;
 
     /*
      * 初始化节点
@@ -85,7 +85,10 @@ void minimax_search(gametree_node *&root,
         }
     };
 
-    if (ln == 0) minimax_search(root->next, ln + 1, y, x);
+    if (ln == 0) {
+        minimax_search(root->next, ln + 1, y, x);
+        goto end;
+    }
 
     /*
      * 遍历每一个空位，产生所有可能的走法
@@ -97,8 +100,9 @@ void minimax_search(gametree_node *&root,
                 root->x = j;
                 root->chessboard[i][j] = ln % 2 ? our_color : enemy_color;
 
-                int eval_score;
+                minimax_search(root->next, ln + 1, y, x);
 
+                int eval_score;
                 /*
                  * 如果搜索到最后一层，则对每该局面估值，
                  * 否则选取下一层节点反馈给该层的分数
@@ -132,7 +136,7 @@ void minimax_search(gametree_node *&root,
             }
         }
     }
-
+end:
     if (ln == 0) {
         y = root->_y;
         x = root->_x;
