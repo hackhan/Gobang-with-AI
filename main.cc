@@ -53,7 +53,7 @@ int main() {
                             coord_buf.push_back(_x);
                             coord_buf.push_back(_y);
                         } else if (_x >= 17 && _x <= 20 &&
-                            _y >= 7 && _y <= 8) {
+                            _y >= 7 && _y <= 8 && !coord_buf.empty()) {
                             outtextxy(17 * UNIT_SIZE, 7 * UNIT_SIZE, "                     ");
                             x = coord_buf[0];
                             y = coord_buf[1];
