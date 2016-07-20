@@ -283,7 +283,7 @@ void ai(int &x, int &y) {
     /*
      * 给出一种开局
      */
-    if (ai_is_sente && step_count <= 3) {
+    if (ai_is_sente && step_count <= 2) {
         if (step_count == 0) {
             y = x = CK_SIZE / 2;
         } else if (step_count == 1) {
@@ -296,6 +296,11 @@ void ai(int &x, int &y) {
         return;
     } 
     
+    if (!ai_is_sente && step_count == 3 && position[6][8] == EMPTY) {
+        y = 6;
+        x = 8;
+        return;
+    }
     /*
      * 五手 N 打规则
      */
