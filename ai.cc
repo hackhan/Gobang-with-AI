@@ -24,7 +24,6 @@ int evaluation(const int _y,
 
 extern int step_count;
 extern bool ai_is_sente;
-extern vector<int> count_tw;
 
 /*
  * 博弈树的节点
@@ -49,9 +48,8 @@ void minimax_search(gametree_node *&root,
 
     if (ln == LAYER_NUM + 1) return;
     
-    int our_color = setblack ? BLACK : WHITE;
-    int enemy_color = setblack ? WHITE : BLACK;
-
+    int our_color = ai_is_sente ? BLACK : WHITE;
+    int enemy_color = ai_is_sente ? WHITE : BLACK;
     /*
      * 初始化节点
      */
@@ -84,12 +82,14 @@ void minimax_search(gametree_node *&root,
             root->prev->_x = root->x;
         }
     };
+#ifdef DEBUG
+    int xx = 0;
+#endif
 
     if (ln == 0) {
         minimax_search(root->next, ln + 1, y, x);
         goto end;
     }
-
     /*
      * 遍历每一个空位，产生所有可能的走法
      */
@@ -108,11 +108,20 @@ void minimax_search(gametree_node *&root,
                  * 否则选取下一层节点反馈给该层的分数
                  */
                 if (ln == LAYER_NUM) {
-                    eval_score = evaluation(i, j, root->chessboard, 
-                                            ln % 2 ? our_color : enemy_color) - 
-                                 evaluation(root->prev->y, root->prev->x, 
-                                            root->chessboard, 
-                                            ln % 2 ? enemy_color : our_color);
+                    if (root->chessboard[i][j] == our_color) {
+                        eval_score = evaluation(i, j, root->chessboard, our_color) -
+                                     evaluation(root->prev->y, root->prev->x, 
+                                                root->chessboard, enemy_color);
+                    } else if (root->chessboard[i][j] == enemy_color) {
+                        eval_score = evaluation(root->prev->y, root->prev->x, 
+                                                root->chessboard, our_color) -
+                                     evaluation(i, j, root->chessboard, enemy_color);
+                    }
+#ifdef DEBUG
+                    cout << eval_score << "\t";
+                    cout << i << "\t" << j << "\t" << xx << endl;
+                    xx++;
+#endif
                     search(eval_score, root->prev->_score);
                 } else {
                     search(root->_score, root->prev->_score);
@@ -124,12 +133,10 @@ void minimax_search(gametree_node *&root,
                 if (ln >= 2 && root->prev->prev->_score != INT_MIN) {
                     if (MAX_LAY(ln - 1) && 
                         root->prev->_score >= root->prev->prev->_score) {
-                        i = CK_SIZE;
-                        break;
+                        goto end;
                     } else if (MIN_LAY(ln - 1) &&
                         root->prev->_score <= root->prev->prev->_score) {
-                        i = CK_SIZE;
-                        break;
+                        goto end;
                     }
                 }
                 root->chessboard[i][j] = EMPTY;
@@ -150,7 +157,7 @@ end:
  */
 int evaluation(const int _y, 
                const int _x, 
-               const int (*chessboard) [CK_SIZE], 
+               const int (*chessboard)[CK_SIZE], 
                const int color) {
     
     char sub_segment[MAX_SIZE + 1];
@@ -158,7 +165,7 @@ int evaluation(const int _y,
     memset(sub_segment, 0, sizeof(sub_segment));
     memset(segment, 0, sizeof(segment));
 
-    int score;
+    int score = 0;
 
     /*
      * 用于判断组合棋型的一组计数
@@ -178,7 +185,7 @@ int evaluation(const int _y,
     /*
      * 匹配 chess_type 中的棋型
      */
-    auto match = [&sub_segment, &segment, &chess_type, &_count, &score] 
+    auto match = [&sub_segment, &segment, &_count, &score] 
                  (const int size, const int sub_size) {
         for (int i = 0; sub_size <= size && 
             i <= size - sub_size; i++) {
@@ -279,7 +286,8 @@ int evaluation(const int _y,
     if (_count[3] > 0 && _count[4] > 0) score += 10;        // 活二眠二
 
     memset(_count, 0, sizeof(_count));
-    return score;
+
+    return score ? score : position_score[_y][_x];
 }
 
 
