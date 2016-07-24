@@ -93,6 +93,7 @@ int main() {
                         }
                     }
                 }
+                delimage(img);
             } else {
                 for (mouse_msg msg = {0}; is_run(); delay_fps(60)) {
                     while (mousemsg())
@@ -285,6 +286,7 @@ bool set_chess(int x, int y) {
     putimage(x * UNIT_SIZE, y * UNIT_SIZE, img);
     position[y][x] = setblack ? BLACK : WHITE;
     setblack = !setblack;
+    delimage(img);
     return true;
 }
 

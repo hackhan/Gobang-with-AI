@@ -1,6 +1,9 @@
 #ifndef OPENBOOK_H
 #define OPENBOOK_H
 
+/*
+ * 开局库
+ */
 int open_book[][4] = {
     {6, 7, 5, 7},   // 寒星局
     {6, 7, 5, 8},   // 溪月局

@@ -38,6 +38,9 @@ typedef struct gametree_node {
     int chessboard[CK_SIZE][CK_SIZE];   // 表示当前节点的棋盘
 } gametree_node;
 
+int our_color; //= ai_is_sente ? BLACK : WHITE;
+int enemy_color; // = ai_is_sente ? WHITE : BLACK;
+
 /*
  * 极大极小算法
  */
@@ -47,15 +50,15 @@ void minimax_search(gametree_node *&root,
                     int &x) {
 
     if (ln == LAYER_NUM + 1) return;
-    
-    int our_color = ai_is_sente ? BLACK : WHITE;
-    int enemy_color = ai_is_sente ? WHITE : BLACK;
+    our_color = ai_is_sente ? BLACK : WHITE;
+    enemy_color = ai_is_sente ? WHITE : BLACK;
     /*
      * 初始化节点
      */
     root = (gametree_node *)malloc(sizeof(gametree_node));
-    root->x = root->y = INT_MIN;
     root->_x = root->_y = INT_MIN;
+    root->x = ln ? INT_MIN : x;
+    root->y = ln ? INT_MIN : y;
     root->_score = INT_MIN;
     root->layer_number = ln;
     root->prev = ln ? container_of(&root, gametree_node, next) : nullptr;
@@ -130,15 +133,15 @@ void minimax_search(gametree_node *&root,
                 /*
                  * alpha-beta 剪枝
                  */
-                if (ln >= 2 && root->prev->prev->_score != INT_MIN) {
-                    if (MAX_LAY(ln - 1) && 
-                        root->prev->_score >= root->prev->prev->_score) {
-                        goto end;
-                    } else if (MIN_LAY(ln - 1) &&
-                        root->prev->_score <= root->prev->prev->_score) {
-                        goto end;
-                    }
-                }
+                // if (ln >= 2 && root->prev->prev->_score != INT_MIN) {
+                //     if (MAX_LAY(ln - 1) && 
+                //         root->prev->_score >= root->prev->prev->_score) {
+                //         goto end;
+                //     } else if (MIN_LAY(ln - 1) &&
+                //         root->prev->_score <= root->prev->prev->_score) {
+                //         goto end;
+                //     }
+                // }
                 root->chessboard[i][j] = EMPTY;
             }
         }
@@ -185,7 +188,7 @@ int evaluation(const int _y,
     /*
      * 匹配 chess_type 中的棋型
      */
-    auto match = [&sub_segment, &segment, &_count, &score] 
+    auto match = [&sub_segment, &segment, &_count, &score, color] 
                  (const int size, const int sub_size) {
         for (int i = 0; sub_size <= size && 
             i <= size - sub_size; i++) {
@@ -196,7 +199,7 @@ int evaluation(const int _y,
 
             int _score = chess_type[sub_segment];
             score += _score;
-
+            
             switch(_score) {
                 case 500: _count[0]++; break;
                 case 200: _count[1]++; break;
@@ -278,12 +281,12 @@ int evaluation(const int _y,
     /*
      * 判断组合棋型
      */
-    if (_count[0] > 1) score += 10000;                      // 双冲四
-    if (_count[0] > 0 && _count[1] > 0) score += 10000;     // 冲四活三
-    if (_count[1] > 1) score += 5000;                       // 双活三
-    if (_count[1] > 0 && _count[2] > 0) score += 1000;      // 活三眠三
-    if (_count[3] > 1) score += 100;                        // 双活二
-    if (_count[3] > 0 && _count[4] > 0) score += 10;        // 活二眠二
+    // if (_count[0] > 1) score += 10000;                      // 双冲四
+    // if (_count[0] > 0 && _count[1] > 0) score += 10000;     // 冲四活三
+    // if (_count[1] > 1) score += 5000;                       // 双活三
+    // if (_count[1] > 0 && _count[2] > 0) score += 1000;      // 活三眠三
+    // if (_count[3] > 1) score += 100;                        // 双活二
+    // if (_count[3] > 0 && _count[4] > 0) score += 10;        // 活二眠二
 
     memset(_count, 0, sizeof(_count));
 
@@ -385,6 +388,7 @@ void ai(int &x, int &y) {
                 }
             }
         }
+        delimage(img);
     }
     gametree_node *root = nullptr;
     minimax_search(root, 0, y, x);
