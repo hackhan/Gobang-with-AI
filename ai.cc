@@ -173,8 +173,8 @@ int evaluation(const int _y,
     /*
      * 用于判断组合棋型的一组计数
      */
-    int _count[5];   // [冲四, 活三, 眠三, 活二, 眠二]
-    memset(_count, 0, sizeof(_count));
+    // int _count[5];   // [冲四, 活三, 眠三, 活二, 眠二]
+    // memset(_count, 0, sizeof(_count));
 
     /*
      * 返回棋盘落子点状态
@@ -188,7 +188,7 @@ int evaluation(const int _y,
     /*
      * 匹配 chess_type 中的棋型
      */
-    auto match = [&sub_segment, &segment, &_count, &score, color] 
+    auto match = [&sub_segment, &segment, /*&_count,*/ &score, color] 
                  (const int size, const int sub_size) {
         for (int i = 0; sub_size <= size && 
             i <= size - sub_size; i++) {
@@ -198,15 +198,19 @@ int evaluation(const int _y,
             }
 
             int _score = chess_type[sub_segment];
+            if (color == enemy_color && _score == 200)
+                _score += 10000;
+            if (color == enemy_color && _score == 500)
+                _score += 10000;
             score += _score;
             
-            switch(_score) {
-                case 500: _count[0]++; break;
-                case 200: _count[1]++; break;
-                case  50: _count[2]++; break;
-                case   5: _count[3]++; break;
-                case   3: _count[4]++; break;
-            }
+            // switch(_score) {
+            //     case 500: _count[0]++; break;
+            //     case 200: _count[1]++; break;
+            //     case  50: _count[2]++; break;
+            //     case   5: _count[3]++; break;
+            //     case   3: _count[4]++; break;
+            // }
         }
     };
 
@@ -288,7 +292,7 @@ int evaluation(const int _y,
     // if (_count[3] > 1) score += 100;                        // 双活二
     // if (_count[3] > 0 && _count[4] > 0) score += 10;        // 活二眠二
 
-    memset(_count, 0, sizeof(_count));
+    // memset(_count, 0, sizeof(_count));
 
     return score ? score : position_score[_y][_x];
 }
