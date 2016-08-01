@@ -105,7 +105,7 @@ void minimax_search(gametree_node *&root,
 
                 minimax_search(root->next, ln + 1, y, x);
 
-                int eval_score;
+                int eval_score = 0;
                 /*
                  * 如果搜索到最后一层，则对每该局面估值，
                  * 否则选取下一层节点反馈给该层的分数
@@ -327,7 +327,7 @@ void ai(int &x, int &y) {
         PIMAGE img = newimage();
         getimage(img, "res/black.ico");
 
-        int mark;
+        int mark = 0;
         if (position[5][8] == EMPTY && position[6][6] == EMPTY) {
             putimage(8 * UNIT_SIZE, 5 * UNIT_SIZE, img);
             putimage(6 * UNIT_SIZE, 6 * UNIT_SIZE, img);
