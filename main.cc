@@ -23,6 +23,7 @@ int main() {
     setcaption("五子棋");
     setbkcolor(EGERGB(218, 165, 105));
 
+    bool flag_swap = false;
     bool flag = select_order();
     draw_board();
 
@@ -42,21 +43,36 @@ int main() {
                 outtextxy(17 * UNIT_SIZE, 7 * UNIT_SIZE, "结束放子");
                 getimage(img, "res/black.png");
 
+                int __x = 0, __y = 0;
                 for (mouse_msg msg = {0}; is_run(); delay_fps(60)) {
                     while (mousemsg()) msg = getmouse();
 
                     if (msg.is_up()) {
                         int _x = msg.x / UNIT_SIZE;
                         int _y = msg.y / UNIT_SIZE;
+                        
                         if (_x < CK_SIZE && _y < CK_SIZE && position[_y][_x] == EMPTY) {
                             putimage(_x * UNIT_SIZE, _y * UNIT_SIZE, img);
-                            coord_buf.push_back(_x);
-                            coord_buf.push_back(_y);
+                            if (coord_buf.empty() || (_x != __x || _y != __y)) {
+                                coord_buf.push_back(_x);
+                                coord_buf.push_back(_y);
+                                __x = _x;
+                                __y = _y;
+                            }
                         } else if (_x >= 17 && _x <= 20 &&
                             _y >= 7 && _y <= 8 && !coord_buf.empty()) {
+
                             outtextxy(17 * UNIT_SIZE, 7 * UNIT_SIZE, "                     ");
                             x = coord_buf[0];
                             y = coord_buf[1];
+
+                            /*
+                             * 如果对方在第三手换了子，则判断其第五手的打点数是否符合要求
+                             */
+                            if (flag_swap && coord_buf.size() != 4) {
+                                message_box("对方打点数不符合要求！", "确定！", 23);
+                                exit(0);
+                            }
 
                             for (auto it = coord_buf.cbegin() + 2; 
                                 it != coord_buf.cend(); it += 2) {
@@ -125,6 +141,7 @@ int main() {
                         if (msg.x >= 19 * UNIT_SIZE + 10 && msg.x <= 23 * UNIT_SIZE &&
                             msg.y >= 3 * UNIT_SIZE && msg.y <= 3 * UNIT_SIZE + 20) {
                             if (msg.x >= 19 * UNIT_SIZE + 10 && msg.x <= 20 * UNIT_SIZE) {
+                                flag_swap = true;
                                 ai_is_sente = false;
                                 flag = true;
                                 setfont(-16, 0, "宋体");

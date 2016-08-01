@@ -24,5 +24,6 @@ bool set_chess(int x, int y);
 bool select_order();
 bool is_gameover(int x, int y);
 void ai(int &x, int &y);
+void message_box(const char *s1, const char *s2, int font_size);
 
 #endif
