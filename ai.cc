@@ -17,11 +17,6 @@
 #define MAX_LAY(n) ((n) % 2 == 0)
 #define MIN_LAY(n) ((n) % 2 == 1)
 
-int evaluation(const int _y, 
-               const int _x, 
-               const int (*chessboard) [CK_SIZE], 
-               const int color);
-
 extern int step_count;
 extern bool ai_is_sente;
 
@@ -38,8 +33,8 @@ typedef struct gametree_node {
     int chessboard[CK_SIZE][CK_SIZE];   // 表示当前节点的棋盘
 } gametree_node;
 
-int our_color; //= ai_is_sente ? BLACK : WHITE;
-int enemy_color; // = ai_is_sente ? WHITE : BLACK;
+int our_color;
+int enemy_color;
 
 /*
  * 极大极小算法
@@ -85,9 +80,6 @@ void minimax_search(gametree_node *&root,
             root->prev->_x = root->x;
         }
     };
-#ifdef DEBUG
-    int xx = 0;
-#endif
 
     if (ln == 0) {
         minimax_search(root->next, ln + 1, y, x);
@@ -120,11 +112,7 @@ void minimax_search(gametree_node *&root,
                                                 root->chessboard, our_color) -
                                      evaluation(i, j, root->chessboard, enemy_color);
                     }
-#ifdef DEBUG
-                    cout << eval_score << "\t";
-                    cout << i << "\t" << j << "\t" << xx << endl;
-                    xx++;
-#endif
+
                     search(eval_score, root->prev->_score);
                 } else {
                     search(root->_score, root->prev->_score);
@@ -156,6 +144,108 @@ end:
 }   
 
 /*
+ * 判断禁手
+ */
+bool judge_forbidden(const int _y, 
+                     const int _x,
+                     const int (*chessboard)[CK_SIZE]) {
+    char sub_segment[MAX_SIZE + 1];
+    char segment[CK_SIZE + 1];
+    memset(sub_segment, 0, sizeof(sub_segment));
+    memset(segment, 0, sizeof(segment));
+
+    int count_san = 0, count_si = 0;
+    bool changlian = false;
+
+    auto match = [&sub_segment, &segment, &changlian, &count_si, &count_san] 
+                 (const int size, const int sub_size) {
+        for (int i = 0; sub_size <= size &&
+            i <= size - sub_size; i++) {
+            memset(sub_segment, 0, sizeof(sub_segment));
+            for (int j = 0, k = i; j < sub_size; j++, k++) {
+                sub_segment[j] = segment[k];
+            }
+
+            int _score = chess_type[sub_segment];
+
+            if (strcmp(sub_segment, "111111") == 0)
+                changlian = true;
+            if (_score == 200)
+                count_san++;
+            if (_score == 500 || _score == 10000)
+                count_si++;
+        }
+    };
+
+    for (int i = 0; i < CK_SIZE; i++) {
+        if (chessboard[_y][i] == EMPTY)
+            segment[i] = NO_PIECE;
+        else if (chessboard[_y][i] == BLACK)
+            segment[i] = OUR;
+        else if (chessboard[_y][i] == WHITE)
+            segment[i] = ENEMY;
+    }
+
+    match(CK_SIZE, MIN_SIZE + 1);
+    match(CK_SIZE, MIN_SIZE + 2);
+    match(CK_SIZE, MIN_SIZE + 3);
+    memset(segment, 0, sizeof(segment));
+
+    for (int i = 0; i < CK_SIZE; i++) {
+        if (chessboard[i][_x] == EMPTY)
+            segment[i] = NO_PIECE;
+        else if (chessboard[i][_x] == BLACK)
+            segment[i] = OUR;
+        else if (chessboard[i][_x] == WHITE)
+            segment[i] = ENEMY;
+    }
+
+    match(CK_SIZE, MIN_SIZE + 1);
+    match(CK_SIZE, MIN_SIZE + 2);
+    match(CK_SIZE, MIN_SIZE + 3);
+    memset(segment, 0, sizeof(segment));
+
+    int dif = _x < _y ? _x : _y;
+    for (int i = _y - dif, j = _x - dif, k = 0;
+        i < CK_SIZE && j < CK_SIZE; i++, j++, k++) {
+        if (chessboard[i][j] == EMPTY)
+            segment[i] = NO_PIECE;
+        else if (chessboard[i][j] == BLACK)
+            segment[i] = OUR;
+        else if (chessboard[i][j] == WHITE)
+            segment[i] = ENEMY;
+    }
+    match(CK_SIZE - (_x < _y ? _y - _x : _x - _y), MIN_SIZE + 1);
+    match(CK_SIZE - (_x < _y ? _y - _x : _x - _y), MIN_SIZE + 2);
+    match(CK_SIZE - (_x < _y ? _y - _x : _x - _y), MIN_SIZE + 3);
+    memset(segment, 0, sizeof(segment));
+
+    int ix, iy;
+    for (iy = _y, ix = _x; iy < CK_SIZE - 1 && ix > 0; 
+        iy++, ix--);
+
+    int len = 0;
+    for (int i = iy, j = ix, k = 0; i >= 0 && j < CK_SIZE; 
+        i--, j++, k++, len++) {
+        if (chessboard[i][j] == EMPTY)
+            segment[i] = NO_PIECE;
+        else if (chessboard[i][j] == BLACK)
+            segment[i] = OUR;
+        else if (chessboard[i][j] == WHITE)
+            segment[i] = ENEMY;
+    }
+    match(len, MIN_SIZE + 1);
+    match(len, MIN_SIZE + 2);
+    match(len, MIN_SIZE + 3);
+    memset(segment, 0, sizeof(segment));
+
+    if (count_si > 1 || count_san > 1 || changlian)
+        return true;
+    else
+        return false;
+}
+
+/*
  * 针对某一方估值
  */
 int evaluation(const int _y, 
@@ -171,12 +261,6 @@ int evaluation(const int _y,
     int score = 0;
 
     /*
-     * 用于判断组合棋型的一组计数
-     */
-    // int _count[5];   // [冲四, 活三, 眠三, 活二, 眠二]
-    // memset(_count, 0, sizeof(_count));
-
-    /*
      * 返回棋盘落子点状态
      */
     auto copy_seg = [&color] (int status) {
@@ -185,10 +269,12 @@ int evaluation(const int _y,
         else return ENEMY;
     };
 
+    int count_san = 0;
+    int count_si = 0;
     /*
      * 匹配 chess_type 中的棋型
      */
-    auto match = [&sub_segment, &segment, /*&_count,*/ &score, color] 
+    auto match = [&sub_segment, &segment, &score, color, &count_si, &count_san] 
                  (const int size, const int sub_size) {
         for (int i = 0; sub_size <= size && 
             i <= size - sub_size; i++) {
@@ -198,19 +284,22 @@ int evaluation(const int _y,
             }
 
             int _score = chess_type[sub_segment];
+            /*
+             * 如果走出长连，则扣除 100000 分
+             */
+            if (color == BLACK &&
+                strcmp(sub_segment, "111111") == 0)
+                _score -= 100000;
+            if (_score == 200)
+                count_san++;
+            if (_score == 500 || _score == 10000)
+                count_si++;
+
             if (color == enemy_color && _score == 200)
                 _score += 10000;
             if (color == enemy_color && _score == 500)
                 _score += 10000;
             score += _score;
-            
-            // switch(_score) {
-            //     case 500: _count[0]++; break;
-            //     case 200: _count[1]++; break;
-            //     case  50: _count[2]++; break;
-            //     case   5: _count[3]++; break;
-            //     case   3: _count[4]++; break;
-            // }
         }
     };
 
@@ -283,16 +372,12 @@ int evaluation(const int _y,
     memset(segment, 0, sizeof(segment));
 
     /*
-     * 判断组合棋型
+     * 如果我方走出禁手，则扣除 100000 分
      */
-    // if (_count[0] > 1) score += 10000;                      // 双冲四
-    // if (_count[0] > 0 && _count[1] > 0) score += 10000;     // 冲四活三
-    // if (_count[1] > 1) score += 5000;                       // 双活三
-    // if (_count[1] > 0 && _count[2] > 0) score += 1000;      // 活三眠三
-    // if (_count[3] > 1) score += 100;                        // 双活二
-    // if (_count[3] > 0 && _count[4] > 0) score += 10;        // 活二眠二
-
-    // memset(_count, 0, sizeof(_count));
+    if (color == our_color &&
+        color == BLACK && 
+        (count_si > 1 || count_san > 1))
+        score -= 100000;
 
     return score ? score : position_score[_y][_x];
 }

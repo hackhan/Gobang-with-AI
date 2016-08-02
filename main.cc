@@ -122,6 +122,7 @@ int main() {
                 }
             }
         }
+
         if (set_chess(x, y)) {
             step_count++;
             if (step_count > 2) 
@@ -157,6 +158,11 @@ int main() {
                 }
             }
         }
+
+        if (!ai_is_sente && judge_forbidden(y, x, position)) {
+            message_box("黑方下出了禁手", "确定", 23);
+        }
+
     } while (!is_gameover(x, y));
 
     setfont(-50, 0, "黑体");
