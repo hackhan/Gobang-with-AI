@@ -2,8 +2,7 @@ Gobang_with_AI
 =====
 带有简易 AI 的五子棋游戏
 
-界面采用开源图形库 ege 编写
-HomePage: https://github.com/misakamm/xege
+界面采用开源图形库 ege 编写，HomePage: https://github.com/misakamm/xege
 
 AI 基于极大极小搜索和估值函数
 
@@ -16,20 +15,18 @@ AI 基于极大极小搜索和估值函数
 编译选项说明：
 -----------------------------------------------------------
 默认的 Makefile 是 Debug 版本，关键参数：
-<pre>
-
+``` C++
     -g
     -O0        // 禁用优化
     -DDEBUG    // 定义 DEBUG 宏，方便输出调试信息
     -gdwarf-2
     -g3        // 用 gdb 调试方便输出宏定义
-</pre>
+```
 Makefile.release 是 Release 版本，关键参数：
-<pre>
-
+``` C++
     -O2        // 采用二级优化
     -mwindows  // 去掉控制台窗口
-</pre>
+```
 均采用 gnu++11 标准
 
 规则简介：
