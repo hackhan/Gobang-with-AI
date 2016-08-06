@@ -1,4 +1,4 @@
-Gobang_with_AI
+Gobang-with-AI
 =====
 　　带有简易 AI 的五子棋游戏，界面采用开源图形库 ege 编写(HomePage: https://github.com/misakamm/xege )，游戏 AI 基于极大极小搜索和估值函数。
 
